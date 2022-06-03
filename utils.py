@@ -85,6 +85,30 @@ def save_results(actual: np.array, predicted: np.array, comment=None):
     }).to_csv(filename, index=False)
 
 
+# метод для визулизации прогнозов
+def plot_forecast(series_train, series_test, forecast, forecast_int=None):
+
+    wape = wape_metric(series_test, forecast)
+    quality = 1 - wape
+
+    plt.figure(figsize=(12, 6))
+    plt.title(f"WAPE: {wape:.2f}  Quality: {quality:.2f}")
+    series_train.plot(label="train", color="b")
+    series_test.plot(label="test", color="g")
+    # forecast.index = series_test.index
+    forecast.plot(label="forecast", color="r")
+    if forecast_int is not None:
+        plt.fill_between(
+            series_test.index,
+            forecast_int["lower"],
+            forecast_int["upper"],
+            alpha=0.2,
+            color="dimgray",
+        )
+    plt.legend(prop={"size": 16})
+    plt.show()
+
+
 # Repository
 
 class Repo:

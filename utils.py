@@ -28,6 +28,7 @@ import random
 
 # Data Manipulation
 
+# метод для агрегирования данных по неделям/месяцам и т.д.
 def group_data(data: pd.DataFrame, date_interval: str):
     return data.groupby(
         ['DFU', 'Customer', data['Period'].dt.to_period(date_interval)]
@@ -36,6 +37,7 @@ def group_data(data: pd.DataFrame, date_interval: str):
     ).reset_index()
 
 
+# метод для удаления выбросов
 def clean_data(data: pd.DataFrame, replace_with: str = '3sigma', comments: bool = False):
     '''
     replace_with: 'mean' / '3sigma'
@@ -53,6 +55,7 @@ def clean_data(data: pd.DataFrame, replace_with: str = '3sigma', comments: bool 
     return data_cleaned
 
 
+# метод для создания новых признаков (день, месяц, год, квартал)
 def make_date_features(X: pd.DataFrame, date_col_name='Period') -> pd.DataFrame:
     X_new = X.copy()
     date_info = X[date_col_name].dt
@@ -67,14 +70,17 @@ def make_date_features(X: pd.DataFrame, date_col_name='Period') -> pd.DataFrame:
 
 # Metrics
 
+# подсчет метрики wape
 def wape_metric(actual: np.array, predicted: np.array):
     return np.abs(actual - predicted).sum() / actual.sum()
 
 
+# подсчет метрики 1-wape
 def quality(actual: np.array, predicted: np.array):
     return 1 - wape_metric(actual, predicted)
 
 
+# метод для сохранения прогнозов в csv файл
 def save_results(actual: np.array, predicted: np.array, comment=None):
     prefix = '' if comment is None else f'{comment}-'
     filename = f'{prefix}results.csv'

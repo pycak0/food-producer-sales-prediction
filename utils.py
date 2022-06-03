@@ -72,7 +72,7 @@ def make_date_features(X: pd.DataFrame, date_col_name='Period') -> pd.DataFrame:
 
 # подсчет метрики wape
 def wape_metric(actual: np.array, predicted: np.array):
-    return np.abs(actual - predicted).sum() / actual.sum()
+    return np.abs(np.array(actual) - np.array(predicted)).sum() / np.array(actual).sum()
 
 
 # подсчет метрики 1-wape

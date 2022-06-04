@@ -1,14 +1,86 @@
 """Файл с общими полезными методами.
 """
 
+from urllib.request import urlretrieve
+from zipfile import ZipFile
+
 from itertools import product
+from typing import Tuple
 from typing import Iterable
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Data Manipulation
+### Data Loading
+
+def get_all_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Получить все данные.
+    Включает в себя загрузку архивов, распаковку, чтение и подготовку данных.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: [train_sales, test_sales, promo]
+    """
+
+    url = 'https://drive.google.com/uc?export=download&id=1ndm03Vd4-gW2Q2iKkCjFkGnMf5X98RGy&confirm=t'
+    file_name = 'all_data.zip'
+
+    print('Loading data...')
+    load(url, file_name)
+
+    print('Unzipping data...')
+    unzip(file_name)
+
+    print('Creating DataFrames & filling zeros...')
+    all_data = read_all_data()
+
+    print('Completed.')
+    return all_data
+
+
+def load(url: str, file_name: str):
+    """Скачать файл.
+
+    Args:
+        url (str): URL файла.
+        file_name (str): Имя файла для сохранения.
+    """
+
+    urlretrieve(url, file_name)
+
+
+def unzip(path: str, target_dir: str = ''):
+    """Распаковать zip архив.
+
+    Args:
+        path (str): Путь до архива.
+        target_dir (str, optional): Путь, куда распаковать файл.
+            По умолчанию '' (в текущей директории).
+    """
+
+    with ZipFile(path, 'r') as zip_ref:
+        zip_ref.extractall(target_dir)
+
+
+def read_all_data(path: str = '') -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Создать датафреймы для трейн, тест и промо данных
+    и заполнить трейн и тест недостающими нулями.
+
+    Args:
+        path (str, optional): Путь до папки с файлами.
+            По умолчанию '' (текущая директория).
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: [train_sales, test_sales, promo]
+    """
+
+    return (
+        fill_data(pd.read_excel(f'{path}ПЕ_train_sales.xlsx')),
+        fill_data(pd.read_excel(f'{path}ПЕ_test_sales.xlsx')),
+        pd.read_excel(f'{path}ПЕ_train_promo.xlsx')
+    )
+
 
 def fill_data(data: pd.DataFrame) -> pd.DataFrame:
     """Заполнить данные недостающими нулями.
@@ -43,6 +115,8 @@ def fill_data(data: pd.DataFrame) -> pd.DataFrame:
         .sort_values(by="Period")\
         .reset_index()
 
+
+### Data Manipulation
 
 def group_data(data: pd.DataFrame, date_interval: str) -> pd.DataFrame:
     """Агрегировать данные по неделям/месяцам и т.д.
@@ -107,7 +181,7 @@ def make_date_features(X: pd.DataFrame, date_col_name='Period') -> pd.DataFrame:
     return X_new
 
 
-# Metrics
+### Metrics
 
 def wape_metric(actual: Iterable[float], predicted: Iterable[float]) -> float:
     """Подсчитать метрику WAPE.
@@ -193,7 +267,7 @@ def plot_forecast(
     plt.show()
 
 
-# Repository
+### Repository
 
 class Repo:
     """Класс-обертка над DataFrame для удобного выбора нужных данных.

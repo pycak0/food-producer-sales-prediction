@@ -1,6 +1,7 @@
 """Файл с общими полезными методами.
 """
 
+from itertools import product
 from typing import Iterable
 import pandas as pd
 import numpy as np
@@ -8,6 +9,40 @@ import matplotlib.pyplot as plt
 
 
 # Data Manipulation
+
+def fill_data(data: pd.DataFrame) -> pd.DataFrame:
+    """Заполнить данные недостающими нулями.
+
+    Args:
+        data (pd.DataFrame): Исходный датафрейм.
+
+    Returns:
+        pd.DataFrame: Новый датафрейм, дополненный недостающими нулями.
+    """
+
+    dfus = data['DFU'].unique()
+    customers = data['Customer'].unique()
+    dtr = pd.date_range(
+        data['Period'].min(),
+        data['Period'].max(),
+        freq='W-MON'
+    )
+    index_cols = ['Period', 'DFU', 'Customer']
+
+    zeros_df = pd.DataFrame(
+        product(dfus, customers, dtr.values, [0], [0]),
+        columns=data.columns
+    ).set_index(index_cols)
+    new_data = data.copy().set_index(index_cols)
+
+    index_diff = zeros_df.index.difference(
+        new_data.index
+    )
+
+    return new_data.append(zeros_df.loc[index_diff])\
+        .sort_values(by="Period")\
+        .reset_index()
+
 
 def group_data(data: pd.DataFrame, date_interval: str) -> pd.DataFrame:
     """Агрегировать данные по неделям/месяцам и т.д.

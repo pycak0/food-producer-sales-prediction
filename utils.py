@@ -477,7 +477,10 @@ def forecast_ml(
     X_train: np.array,
     y_test: np.array,
     X_test: np.array,
-    scaler=StandardScaler()
+    scaler=StandardScaler(),
+    save_plot: bool=False,
+    save_results_csv: bool=False,
+    file_prefix: str=None
 ) -> np.array:
     """Предсказание моделями машинного обучения.
 
@@ -489,6 +492,12 @@ def forecast_ml(
         X_test (np.array): Матрица признаков для трейна.
         scaler (BaseEstimator, optional): Скейлер для данных. По умолчанию StandardScaler().
             Если передать None, данные не будут скейлиться.
+        save_plot (bool, optional): Сохранить картинку предсказания (True) или нет (False).
+            По умолчанию False.
+        save_results_csv (bool, optional): Сохранить результаты предсказания (True) или нет (False).
+            По умолчанию False.
+        file_prefix (_type_, optional): Префикс для картинки и файла с предсказанием.
+            По умолчанию None (отсутствует).
 
     Returns:
         np.array: Предсказания целевой переменной.
@@ -507,6 +516,9 @@ def forecast_ml(
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
 
+    if save_results_csv:
+        save_results(y_test, y_pred, comment=file_prefix)
+
     plt.figure(figsize=(12, 4))
     plt.plot(period_train, y_train, label='train')
     plt.plot(period_test, y_test, label='true test')
@@ -514,6 +526,11 @@ def forecast_ml(
 
     plt.legend()
     plt.title(f'{type(model).__name__} Model forecast')
+
+    img_prefix = f'{file_prefix}-' if file_prefix is not None else ''
+    if save_plot:
+        plt.savefig(f'{img_prefix}plot.png')
+
     plt.show()
 
     print(f"\n📝 Test WAPE quality: {quality(y_test, y_pred) * 100}")

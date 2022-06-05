@@ -236,7 +236,9 @@ def calculate_feature(df_sales: pd.DataFrame, df_promo: pd.DataFrame) -> pd.Data
     for i, row_sales in sales_new.iterrows():
         for _, row_promo in df_promo.iterrows():
             for day in range(7):
-                if row_promo['First Date of shipment'] <= add_days(row_sales['Period'], day) <= row_promo['End Date of shipment']:
+                first_date = row_promo['First Date of shipment']
+                end_date = row_promo['End Date of shipment']
+                if first_date <= add_days(row_sales['Period'], day) <= end_date:
                     sales_new.loc[i, f'D{day}'] = 1
 
     return sales_new
@@ -473,6 +475,49 @@ class Repo:
 
 
 ### Training
+
+def forecast_simple(
+    forecaster: any,
+    y_train: pd.DataFrame,
+    y_test: pd.DataFrame,
+    X_test: pd.DataFrame,
+    X_train: pd.DataFrame,
+    show_plot: bool = True
+) -> Tuple[np.array, np.array]:
+    """Метод для предсказания простыми моделями из sktime.
+
+    Args:
+        forecaster (any): Модель.
+        y_train (pd.DataFrame): Значения целевой переменной на трейне.
+        y_test (pd.DataFrame): Значения целевой переменной на тесте.
+        X_test (pd.DataFrame): Матрица признаков для трейна.
+        X_train (pd.DataFrame, optional): Матрица признаков для теста.
+        show_plot (bool, optional): Показать ли график с предсказанием.
+            По умолчанию True (показать).
+
+    Returns:
+        Tuple[np.array, np.array]: Фактические и предсказанные значения целевой переменной.
+    """
+
+    forecaster.fit(y_train)
+    y_pred = forecaster.predict(X_test.index)
+
+    if show_plot:
+        plt.figure(figsize=(12, 4))
+
+        plt.plot(X_train['Period'], y_train, label='train')
+        plt.plot(X_test['Period'], y_test, label='true test')
+        plt.plot(X_test['Period'], y_pred, label='predicted')
+
+        plt.legend()
+        plt.title(f'{type(forecaster).__name__} forecast')
+        plt.show()
+
+    qual = quality(y_test.values, y_pred.values) * 100
+    print(f"\n📝 Test quality : {qual}")
+
+    return (y_test.values, y_pred.values)
+
 
 def forecast_ml(
     model: BaseEstimator,

@@ -152,11 +152,14 @@ def group_data(data: pd.DataFrame, date_interval: str) -> pd.DataFrame:
             агрегированными по заданному интервалу.
     """
 
+    agg_dict = dict()
+    for col in ['BPV', 'Total Sell-in', 'Promo_period']:
+        if col in data.columns:
+            agg_dict[col] = sum
+
     return data.groupby(
-        ['DFU', 'Customer', data['Period'].dt.to_period(date_interval)]
-    ).agg(
-        {'BPV': sum, 'Total Sell-in': sum}
-    ).reset_index()
+        ['DFU', 'Customer', pd.Grouper(key='Period', freq=date_interval)]
+    ).agg(agg_dict).sort_values(by="Period").reset_index()
 
 
 def clean_data(data: pd.DataFrame, replace_with: str = '3sigma') -> pd.DataFrame:

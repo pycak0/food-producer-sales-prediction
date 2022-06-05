@@ -13,6 +13,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+from sklearn.base import BaseEstimator
+from sklearn.preprocessing import StandardScaler
+
 
 ### Data Loading
 
@@ -464,3 +467,55 @@ class Repo:
             plt.savefig(f'pictures/generated/cust{cust}_{dfu}_processed.pdf')
 
         plt.show()
+
+
+### Training
+
+def forecast_ml(
+    model: BaseEstimator,
+    y_train: np.array,
+    X_train: np.array,
+    y_test: np.array,
+    X_test: np.array,
+    scaler=StandardScaler()
+) -> np.array:
+    """Предсказание моделями машинного обучения.
+
+    Args:
+        model (RegressorMixin | BaseEstimator): Модель машиннго обучения.
+        y_train (np.array): Значения целевой переменной для трейна.
+        X_train (np.array): Матрица признаков для трейна.
+        y_test (np.array): Значения целевой переменной для теста.
+        X_test (np.array): Матрица признаков для трейна.
+        scaler (BaseEstimator, optional): Скейлер для данных. По умолчанию StandardScaler().
+            Если передать None, данные не будут скейлиться.
+
+    Returns:
+        np.array: Предсказания целевой переменной.
+    """
+
+    period_test = X_test['Period']
+    period_train = X_train['Period']
+
+    X_train = X_train.drop(columns=['Period'])
+    X_test = X_test.drop(columns=['Period'])
+
+    if scaler is not None:
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
+
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    plt.figure(figsize=(12, 4))
+    plt.plot(period_train, y_train, label='train')
+    plt.plot(period_test, y_test, label='true test')
+    plt.plot(period_test, y_pred, label='predicted')
+
+    plt.legend()
+    plt.title(f'{type(model).__name__} Model forecast')
+    plt.show()
+
+    print(f"\n📝 Test WAPE quality: {quality(y_test, y_pred) * 100}")
+
+    return y_pred

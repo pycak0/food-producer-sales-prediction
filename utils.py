@@ -176,6 +176,8 @@ def clean_data(data: pd.DataFrame, replace_with: str = '3sigma') -> pd.DataFrame
     return data_cleaned
 
 
+### Feature Engineering
+
 def make_date_features(X: pd.DataFrame, date_col_name='Period') -> pd.DataFrame:
     """Создать новые признаки (день, месяц, год, квартал).
 
@@ -196,6 +198,80 @@ def make_date_features(X: pd.DataFrame, date_col_name='Period') -> pd.DataFrame:
     X_new['Q'] = date_info.quarter
 
     return X_new
+
+
+def add_days(date: np.datetime64, num_days: int) -> np.datetime64:
+    """Добавить к дате указанное число дней.
+
+    Args:
+        date (np.datetime64): Дата.
+        num_days (int): Число дней.
+
+    Returns:
+        np.datetime64: Дата, увеличенная на указанное число дней.
+    """
+
+    return date + np.timedelta64(num_days, 'D')
+
+
+def calculate_feature(df_sales: pd.DataFrame, df_promo: pd.DataFrame) -> pd.DataFrame:
+    """Вспомогательный метод для генерации промо-признака
+
+    Args:
+        df_sales (pd.DataFrame): Датафрейм sales
+        df_promo (pd.DataFrame): Датафрейм promo
+
+    Returns:
+        pd.DataFrame: Новый датафрейм со сгенерированными признаками
+    """
+
+    sales_new = df_sales.copy()
+
+    for i, row_sales in sales_new.iterrows():
+        for _, row_promo in df_promo.iterrows():
+            for day in range(7):
+                if row_promo['First Date of shipment'] <= add_days(row_sales['Period'], day) <= row_promo['End Date of shipment']:
+                    sales_new.loc[i, f'D{day}'] = 1
+
+    return sales_new
+
+
+def generate_feature(df_sales, df_promo):
+    """Сгенерировать промо-признак
+
+    Args:
+        df_sales ([type]): Датафрейм sales
+        df_promo ([type]): Датафрейм promo
+
+    Returns:
+        [type]: Новый датафрейм sales со сгенерированным промо-признаком
+    """
+
+    cols_to_drop = list(set(df_promo.columns).difference(
+        set(['Customer', 'DFU', 'First Date of shipment',
+             'End Date of shipment', 'Units SoD'])
+    ))
+    promo = df_promo.copy()
+    promo = promo.drop(columns=cols_to_drop)
+
+    sales = df_sales.copy()
+    added_cols = [f'D{i}' for i in range(7)]
+    sales.loc[:, added_cols] = 0
+
+    sales_new = calculate_feature(sales, promo)
+
+    sales_new['Promo_period'] = sales_new[added_cols].sum(axis=1) / 7
+
+    sales_new['SOD_percentage'] = (
+        sales_new['Total Sell-in'] - sales_new['BPV']) / sales_new['Total Sell-in']
+    sales_new.loc[sales_new['SOD_percentage'] == 0, 'Promo_period'] = 0
+    sales_new.loc[
+        (sales_new['Promo_period'] == 0) &
+        (sales_new['SOD_percentage'] != 0),
+        'Promo_period'
+    ] = sales_new['SOD_percentage']
+
+    return sales_new.drop(columns=added_cols)
 
 
 ### Metrics

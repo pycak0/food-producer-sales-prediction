@@ -8,6 +8,7 @@ from itertools import product
 from typing import Tuple
 from typing import Iterable
 
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -32,6 +33,9 @@ def get_all_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     print('Unzipping data...')
     unzip(file_name)
 
+    print('Cleaning up...')
+    remove(file_name)
+
     print('Creating DataFrames & filling zeros...')
     all_data = read_all_data()
 
@@ -50,17 +54,30 @@ def load(url: str, file_name: str):
     urlretrieve(url, file_name)
 
 
-def unzip(path: str, target_dir: str = ''):
+def unzip(zip_path: str, target_dir: str = ''):
     """Распаковать zip архив.
 
     Args:
-        path (str): Путь до архива.
+        zip_path (str): Путь до архива.
         target_dir (str, optional): Путь, куда распаковать файл.
             По умолчанию '' (в текущей директории).
     """
 
-    with ZipFile(path, 'r') as zip_ref:
+    with ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extractall(target_dir)
+
+
+def remove(path: str):
+    """Удалить по заданному пути.
+
+    Args:
+        path (str): Путь до файла/папки.
+    """
+
+    try:
+        os.remove(path)
+    except OSError:
+        pass
 
 
 def read_all_data(path: str = '') -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -76,9 +93,9 @@ def read_all_data(path: str = '') -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFr
     """
 
     return (
-        fill_data(pd.read_excel(f'{path}ПЕ_train_sales.xlsx')),
-        fill_data(pd.read_excel(f'{path}ПЕ_test_sales.xlsx')),
-        pd.read_excel(f'{path}ПЕ_train_promo.xlsx')
+        fill_data(pd.read_excel(f'{path}train_sales.xlsx')),
+        fill_data(pd.read_excel(f'{path}test_sales.xlsx')),
+        pd.read_excel(f'{path}train_promo.xlsx')
     )
 
 

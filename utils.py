@@ -27,19 +27,19 @@ def get_all_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     url = 'https://drive.google.com/uc?export=download&id=1ndm03Vd4-gW2Q2iKkCjFkGnMf5X98RGy&confirm=t'
     file_name = 'all_data.zip'
 
-    print('Loading data...')
+    print('⬇️ Loading data...')
     load(url, file_name)
 
-    print('Unzipping data...')
+    print('🔄 Unzipping data...')
     unzip(file_name)
 
-    print('Cleaning up...')
+    print('🧹 Cleaning up...')
     remove(file_name)
 
-    print('Creating DataFrames & filling zeros...')
+    print('📜 Creating DataFrames & filling zeros...')
     all_data = read_all_data()
 
-    print('Completed.')
+    print('✅ Completed.')
     return all_data
 
 

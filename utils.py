@@ -236,15 +236,21 @@ def calculate_feature(df_sales: pd.DataFrame, df_promo: pd.DataFrame) -> pd.Data
     return sales_new
 
 
-def generate_feature(df_sales, df_promo):
-    """Сгенерировать промо-признак
+def generate_feature(
+    df_sales: pd.DataFrame,
+    df_promo: pd.DataFrame,
+    use_sod_correction=True
+):
+    """Сгенерировать промо-признак.
 
     Args:
-        df_sales ([type]): Датафрейм sales
-        df_promo ([type]): Датафрейм promo
+        df_sales (pd.DataFrame): Датафрейм sales.
+        df_promo (pd.DataFrame): Датафрейм promo.
+        use_sod_correction (bool, optional): Использовать ли коррекцию на SoD.
+            По умолчанию True.
 
     Returns:
-        [type]: Новый датафрейм sales со сгенерированным промо-признаком
+        [type]: Новый датафрейм sales со сгенерированным промо-признаком.
     """
 
     cols_to_drop = list(set(df_promo.columns).difference(
@@ -262,14 +268,15 @@ def generate_feature(df_sales, df_promo):
 
     sales_new['Promo_period'] = sales_new[added_cols].sum(axis=1) / 7
 
-    sales_new['SOD_percentage'] = (
-        sales_new['Total Sell-in'] - sales_new['BPV']) / sales_new['Total Sell-in']
-    sales_new.loc[sales_new['SOD_percentage'] == 0, 'Promo_period'] = 0
-    sales_new.loc[
-        (sales_new['Promo_period'] == 0) &
-        (sales_new['SOD_percentage'] != 0),
-        'Promo_period'
-    ] = sales_new['SOD_percentage']
+    if use_sod_correction:
+        sales_new['SOD_percentage'] = (
+            sales_new['Total Sell-in'] - sales_new['BPV']) / sales_new['Total Sell-in']
+        sales_new.loc[sales_new['SOD_percentage'] == 0, 'Promo_period'] = 0
+        sales_new.loc[
+            (sales_new['Promo_period'] == 0) &
+            (sales_new['SOD_percentage'] != 0),
+            'Promo_period'
+        ] = sales_new['SOD_percentage']
 
     return sales_new.drop(columns=added_cols)
 

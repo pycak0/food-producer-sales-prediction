@@ -19,12 +19,14 @@ from sklearn.preprocessing import StandardScaler
 
 ### Data Loading
 
-def get_all_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def get_all_data() -> Tuple[pd.DataFrame, pd.DataFrame, 
+                            pd.DataFrame, pd.DataFrame]:
     """Получить все данные.
     Включает в себя загрузку архивов, распаковку, чтение и подготовку данных.
 
     Returns:
-        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: [train_sales, test_sales, promo]
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+            [train_sales, test_sales, train_promo, test_promo]
     """
 
     url = 'https://drive.google.com/uc?export=download&id=1ndm03Vd4-gW2Q2iKkCjFkGnMf5X98RGy&confirm=t'
@@ -83,7 +85,8 @@ def remove(path: str):
         pass
 
 
-def read_all_data(path: str = '') -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def read_all_data(path: str = '') -> Tuple[pd.DataFrame, pd.DataFrame, 
+                                           pd.DataFrame, pd.DataFrame]:
     """Создать датафреймы для трейн, тест и промо данных
     и заполнить трейн и тест недостающими нулями.
 
@@ -92,13 +95,15 @@ def read_all_data(path: str = '') -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFr
             По умолчанию '' (текущая директория).
 
     Returns:
-        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: [train_sales, test_sales, promo]
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+            [train_sales, test_sales, train_promo, test_promo]
     """
 
     return (
         fill_data(pd.read_excel(f'{path}train_sales.xlsx')),
         fill_data(pd.read_excel(f'{path}test_sales.xlsx')),
-        pd.read_excel(f'{path}train_promo.xlsx')
+        pd.read_excel(f'{path}train_promo.xlsx'),
+        pd.read_excel(f'{path}test_promo.xlsx')
     )
 
 

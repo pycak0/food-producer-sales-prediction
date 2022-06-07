@@ -253,7 +253,7 @@ def generate_feature(
     df_sales: pd.DataFrame,
     df_promo: pd.DataFrame,
     use_sod_correction=True
-):
+) -> pd.DataFrame:
     """Сгенерировать промо-признак.
 
     Args:
@@ -263,7 +263,7 @@ def generate_feature(
             По умолчанию True.
 
     Returns:
-        [type]: Новый датафрейм sales со сгенерированным промо-признаком.
+        [pd.DataFrame]: Новый датафрейм sales со сгенерированным промо-признаком.
     """
 
     cols_to_drop = list(set(df_promo.columns).difference(
@@ -519,7 +519,7 @@ def forecast_simple(
         plt.show()
 
     qual = quality(y_test.values, y_pred.values) * 100
-    print(f"\n📝 Test quality : {qual}")
+    print(f"\n📝 Quality (1 - WAPE) : {qual}")
 
     return (y_test.values, y_pred.values)
 
@@ -586,6 +586,6 @@ def forecast_ml(
 
     plt.show()
 
-    print(f"\n📝 Test WAPE quality: {quality(y_test, y_pred) * 100}")
+    print(f"\n📝 Quality (1 - WAPE) : {quality(y_test, y_pred) * 100}")
 
     return y_pred
